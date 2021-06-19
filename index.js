@@ -18,7 +18,7 @@ ws.on('connection', (connection, req) => {
     connection.send(`Recevied your ping at IP:${ip}.`);
   });
 
-  // The client needs to use emit('message', ...) to get this repsonse.
+  // The client websocket sends message to this event.
   connection.on('message', (incommingMessage) => {
     const input = incommingMessage.toString();
     if (input) {
