@@ -1,0 +1,16 @@
+{
+  "name": "websocket-server",
+  "version": "1.0.0",
+  "description": "A demo based on websocket",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bendy Zhang",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.2.3"
+  }
+}
