@@ -1,3 +1,4 @@
+import minimist from 'minimist';
 import { WebSocketServer } from 'ws';
 import { cmds } from './cmds.js';
 import { trimHelpText } from './utils.js';
@@ -7,12 +8,12 @@ const ws = new WebSocketServer({
   verifyClient: (_info, done) => {
     done(true);
   },
- });
+});
 
 ws.on('connection', (connection, req) => {
   const ip =
-    req.headers['x-forwarded-for']?.split(',')[0].trim()   // if the server runs behind a proxy like NGINX
-    || req.socket.remoteAddress;
+    req.headers['x-forwarded-for']?.split(',')[0].trim() || // if the server runs behind a proxy like NGINX
+    req.socket.remoteAddress;
 
   connection.on('ping', () => {
     connection.send(`Recevied your ping at IP:${ip}.`);
@@ -22,23 +23,49 @@ ws.on('connection', (connection, req) => {
   connection.on('message', (incommingMessage) => {
     const input = incommingMessage.toString();
     if (input) {
-      const args = input.split(' ').filter(v => !!v);
-      const cmdText = args[0];
-      const cmdObject = cmds.find(cmd => cmd.text === cmdText);
-      const cmdOption = (args.length > 1 ? args[1] : '').replace('--', '');
+      const arrs = input
+        .trim()
+        .split(' ')
+        .filter((v) => !!v);
+      const argv = [];
+      const cmdText = input.trim().split(' ')[0];
+      const p = /[^"']+?[\s|"']|".+?"|'.+?'/g;
+      const t = input.trim().replace(cmdText, '').match(p);
+      t.forEach((item) => {
+        if (item && item.trim()) {
+          item = item.trim();
+          if (
+            (item.startsWith('"') && item.endsWith('"')) ||
+            (item.startsWith("'") && item.endsWith("'"))
+          ) {
+            item = item.slice(1, -1);
+          }
+          if (item) {
+            argv.push(item);
+          }
+        }
+      });
 
-      console.log(cmdObject);
-      if (cmdObject) {
-        if (cmdOption.startsWith('help') || cmdText === 'help') {
-          const helpMsg = trimHelpText(cmdObject.help);
+      const cmdArgs = minimist(argv);
+      const cmdHandler = cmds.find((cmd) => cmd.text === cmdText);
+
+      console.log('=================');
+      console.log(cmdText);
+      console.log(cmdArgs);
+
+      if (cmdHandler) {
+        if (cmdArgs._.includes('help') || cmdText === 'help') {
+          const helpMsg = trimHelpText(cmdHandler.help);
           console.log(helpMsg);
           connection.send(helpMsg);
         } else {
           // Run your command
-          connection.send(cmdObject.handler(cmdText, cmdOption));
+          connection.send(cmdHandler.handler(cmdText, cmdArgs));
         }
       } else {
-        connection.send(`Unknows command ${incommingMessage} requested from ${ip}`);
+        connection.send(
+          `Unknows command ${incommingMessage} requested from ${ip}`
+        );
       }
     }
   });

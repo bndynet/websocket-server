@@ -11,6 +11,10 @@
   "author": "Bendy Zhang",
   "license": "ISC",
   "dependencies": {
+    "minimist": "^1.2.6",
     "ws": "^8.2.3"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.2"
   }
 }
