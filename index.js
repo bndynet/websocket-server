@@ -30,21 +30,23 @@ ws.on('connection', (connection, req) => {
       const argv = [];
       const cmdText = input.trim().split(' ')[0];
       const p = /[^"']+?[\s|"']|".+?"|'.+?'/g;
-      const t = input.trim().replace(cmdText, '').match(p);
-      t.forEach((item) => {
-        if (item && item.trim()) {
-          item = item.trim();
-          if (
-            (item.startsWith('"') && item.endsWith('"')) ||
-            (item.startsWith("'") && item.endsWith("'"))
-          ) {
-            item = item.slice(1, -1);
+      const matched = input.trim().replace(cmdText, '').match(p);
+      if (matched && matched.length > 0) {
+        matched.forEach((item) => {
+          if (item && item.trim()) {
+            item = item.trim();
+            if (
+              (item.startsWith('"') && item.endsWith('"')) ||
+              (item.startsWith("'") && item.endsWith("'"))
+            ) {
+              item = item.slice(1, -1);
+            }
+            if (item) {
+              argv.push(item);
+            }
           }
-          if (item) {
-            argv.push(item);
-          }
-        }
-      });
+        });
+      }
 
       const cmdArgs = minimist(argv);
       const cmdHandler = cmds.find((cmd) => cmd.text === cmdText);
