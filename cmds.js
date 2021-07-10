@@ -11,9 +11,10 @@ export const cmds = [
   },
   {
     text: 'hi',
-    help: `Just type hi without --help.`,
+    help: `Just type "hi -b 'response json string or text'" without --help.`,
+    isBroadcast: true,
     handler: (cmd, args) => {
-      return `Hello, I am server. Who are you?`;
+      return args.b || args.body || `Hello, I am server. Who are you?`;
     },
   },
   {
